@@ -18,6 +18,16 @@ class GoogleCalendarFactory
 
         return self::createCalendarClient($service, $calendarId);
     }
+    
+    public static function getCalendarId($service)
+    {
+        $calendarList = $service->calendarList->listCalendarList();
+        foreach ($calendarList as $calendarGoogle) {
+            if($calendarGoogle->accessRole == 'owner'){
+                return $calendarGoogle->id;
+            }
+        }
+    }
 
     public static function createAuthenticatedGoogleClient(array $config): Google_Client
     {

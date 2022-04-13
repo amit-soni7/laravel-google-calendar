@@ -68,7 +68,7 @@ class Event
             $conferenceRequest->setRequestId('randomString123');
             $conference->setCreateRequest($conferenceRequest);
             $googleEvent->setConferenceData($conference);
-            $googleEvent = $service->events->patch($calendarId, $googleEvent->id, $googleEvent, ['conferenceDataVersion' => 1]);
+            $googleEvent = $service->events->patch($calendarId, $googleEvent->id, $googleEvent, ['conferenceDataVersion' => 1, "sendUpdates" => "all"]);
         }
         
         $event = new static;

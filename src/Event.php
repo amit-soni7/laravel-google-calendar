@@ -36,11 +36,28 @@ class Event
      *
      * @return static
      */
-    public static function createFromGoogleCalendarEvent(Google_Service_Calendar_Event $googleEvent, $calendarId)
+   public static function createFromGoogleCalendarEvent(Google_Service_Calendar_Event $googleEvent, $calendarId)
     {
-        //this option are to create a conference and add a link to meet in event
+        $event = new static;
 
-        if (empty($googleEvent->hangoutLink)) {
+        $event->googleEvent = $googleEvent;
+        $event->calendarId = $calendarId;
+
+        return $event;
+    }
+    
+     /**
+     * @param \Google_Service_Calendar_Event $googleEvent
+     * @param $calendarId
+     *
+     * @return static
+     */
+
+    public static function createFromGoogleCalendarEventWithLink(Google_Service_Calendar_Event $googleEvent, $calendarId)
+    {
+         //this option are to create a conference and add a link to meet in event
+
+         if (empty($googleEvent->hangoutLink)) {
             $googleCalendar = static::getGoogleCalendar();
             if ($calendarId == null) {
                 $calendarId = $googleCalendar->getCalendarId();
@@ -197,6 +214,17 @@ class Event
         $googleEvent = $googleCalendar->$method($this, $optParams);
 
         return static::createFromGoogleCalendarEvent($googleEvent, $googleCalendar->getCalendarId());
+    }
+    
+     public function saveAndCreateLink(string $method = null, $optParams = []): self
+    {
+        $method = $method ?? ($this->exists() ? 'updateEvent' : 'insertEvent');
+
+        $googleCalendar = $this->getGoogleCalendar($this->calendarId);
+
+        $googleEvent = $googleCalendar->$method($this, $optParams);
+
+        return static::createFromGoogleCalendarEventWithLink($googleEvent, $googleCalendar->getCalendarId());
     }
 
     public function quickSave(string $text): self

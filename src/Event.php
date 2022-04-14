@@ -207,7 +207,17 @@ class Event
 
     public function save(string $method = null, $optParams = []): self
     {
-        $method = $method ?? ($this->exists() ? 'updateEvent' : 'insertEvent');
+        switch ($method){
+          case 'updateEvent':
+            $method = $method ?? ($this->exists());
+          break;
+          case 'insertEvent':
+            $method = $method ?? ($this->exists());
+          break;
+          case 'patchEvent':
+            $method = $method ?? ($this->exists());
+          break;
+        };
 
         $googleCalendar = $this->getGoogleCalendar($this->calendarId);
 
@@ -235,6 +245,15 @@ class Event
 
         return static::createFromGoogleCalendarEvent($googleEvent, $googleCalendar->getCalendarId());
     }
+    
+    public function patch(array $attributes, $optParams = []): self
+    {
+        foreach ($attributes as $name => $value) {
+            $this->$name = $value;
+        }
+
+        return $this->save('patchEvent', $optParams);
+    }
 
     public function update(array $attributes, $optParams = []): self
     {
@@ -260,7 +279,18 @@ class Event
 
         $this->googleEvent->setAttendees($this->attendees);
     }
+    
+    public function addAdditionalAttendee(array $attendee)
+    {
+        $oldAttendees = $this->googleEvent->attendees;
+        foreach($oldAttendees as $oldAttendee){
+            $this->addAttendee(['email'=> $oldAttendee->email, 'name'=>$oldAttendee->displayName, 'responseStatus' => 'accepted']);
+        };
 
+        $this->addAttendee($attendee);
+        return $this->patch(['conferenceDataVersion'=> 1]);
+    }
+    
     public function getSortDate(): string
     {
         if ($this->startDate) {

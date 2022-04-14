@@ -82,6 +82,15 @@ class GoogleCalendar
     {
         return $this->calendarService->events->quickAdd($this->calendarId, $event);
     }
+    
+    public function patchEvent($event, $optParams = []): Google_Service_Calendar_Event
+    {
+        if ($event instanceof Event) {
+            $event = $event->googleEvent;
+        }
+
+        return $this->calendarService->events->patch($this->calendarId, $event->id, $event, $optParams);
+    }
 
     public function updateEvent($event, $optParams = []): Google_Service_Calendar_Event
     {

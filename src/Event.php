@@ -283,8 +283,13 @@ class Event
     public function addAdditionalAttendee(array $attendee)
     {
         $oldAttendees = $this->googleEvent->attendees;
+        
         foreach($oldAttendees as $oldAttendee){
-            $this->addAttendee(['email'=> $oldAttendee->email, 'name'=>$oldAttendee->displayName, 'responseStatus' => 'accepted']);
+            $this->addAttendee([
+                'email'=> $oldAttendee->email, 
+                'name'=>$oldAttendee->displayName, 
+                'comment'=> $oldAttendee->comment,
+                'responseStatus' => 'accepted']);
         };
 
         $this->addAttendee($attendee);

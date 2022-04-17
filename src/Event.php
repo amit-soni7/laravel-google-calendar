@@ -46,39 +46,6 @@ class Event
         return $event;
     }
     
-     /**
-     * @param \Google_Service_Calendar_Event $googleEvent
-     * @param $calendarId
-     *
-     * @return static
-     */
-
-    public static function createFromGoogleCalendarEventWithLink(Google_Service_Calendar_Event $googleEvent, $calendarId)
-    {
-         //this option are to create a conference and add a link to meet in event
-
-         if (empty($googleEvent->hangoutLink)) {
-            $googleCalendar = static::getGoogleCalendar();
-            if ($calendarId == null) {
-                $calendarId = $googleCalendar->getCalendarId();
-            }
-            $service = $googleCalendar->getService();
-            $conference = new \Google_Service_Calendar_ConferenceData();
-            $conferenceRequest = new \Google_Service_Calendar_CreateConferenceRequest();
-            $conferenceRequest->setRequestId('randomString123');
-            $conference->setCreateRequest($conferenceRequest);
-            $googleEvent->setConferenceData($conference);
-            $googleEvent = $service->events->patch($calendarId, $googleEvent->id, $googleEvent, ['conferenceDataVersion' => 1, "sendUpdates" => "all"]);
-        }
-        
-        $event = new static;
-
-        $event->googleEvent = $googleEvent;
-        $event->calendarId = $calendarId;
-
-        return $event;
-    }
-
     /**
      * @param array $properties
      * @param string|null $calendarId
@@ -226,15 +193,42 @@ class Event
         return static::createFromGoogleCalendarEvent($googleEvent, $googleCalendar->getCalendarId());
     }
     
-     public function saveAndCreateLink(string $method = null, $optParams = []): self
+    //Added new method to add google meet link in new instance of google calendar event
+    
+    public function saveAndCreateLink(string $method = null, $optParams = []): self
     {
         $method = $method ?? ($this->exists() ? 'updateEvent' : 'insertEvent');
+        //created new instance of calender event
+        $googleEvent = new \Google_Service_Calendar_Event();
+        // added previously avaiable data to new instance
+        $calendarId = $this->calendarId;
+        $startDateTime = $this->googleEvent->start;
+        $endDateTime = $this->googleEvent->end;
+        $attendees = $this->attendees;
+        $summary = $this->googleEvent->summary;
+        $description = $this->googleEvent->description;
 
-        $googleCalendar = $this->getGoogleCalendar($this->calendarId);
+        $googleCalendar = static::getGoogleCalendar();
+        //some time calanderId is not available so get it from function if not available
+        if ($calendarId == null) {
+            $calendarId = $googleCalendar->getCalendarId();
+        }
+        $service = $googleCalendar->getService();
+        $conference = new \Google_Service_Calendar_ConferenceData();
+        $conferenceRequest = new \Google_Service_Calendar_CreateConferenceRequest();
+        $conferenceRequest->setRequestId('randomString123');
+        $conference->setCreateRequest($conferenceRequest);
+        $googleEvent->setConferenceData($conference);
+        // added these information to new instance 
+        $googleEvent->start = $startDateTime;
+        $googleEvent->end = $endDateTime;
+        $googleEvent->attendees = $attendees;
+        $googleEvent->description = $description;
+        $googleEvent->summary = $summary;
+        // instead of patching insert new googleEvent with request for google meet.
+        $googleEvent = $service->events->insert($calendarId, $googleEvent, ['conferenceDataVersion' => 1, "sendUpdates" => "all"]);
 
-        $googleEvent = $googleCalendar->$method($this, $optParams);
-
-        return static::createFromGoogleCalendarEventWithLink($googleEvent, $googleCalendar->getCalendarId());
+        return static::createFromGoogleCalendarEvent($googleEvent, $googleCalendar->getCalendarId());
     }
 
     public function quickSave(string $text): self

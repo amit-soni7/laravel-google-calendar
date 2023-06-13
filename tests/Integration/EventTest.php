@@ -85,6 +85,14 @@ class EventTest extends TestCase
     }
 
     /** @test */
+    public function it_can_set_a_color()
+    {
+        $this->event->googleEvent->setColorId(11);
+
+        $this->assertEquals(11, $this->event->googleEvent['colorId']);
+    }
+
+    /** @test */
     public function it_can_set_a_description()
     {
         $this->event->description = 'Test Description';
@@ -133,6 +141,15 @@ class EventTest extends TestCase
         $this->assertEquals($attendees[0]['name'], $this->event->googleEvent->getAttendees()[0]->getDisplayName());
         $this->assertEquals($attendees[0]['comment'], $this->event->googleEvent->getAttendees()[0]->getComment());
         $this->assertEquals($attendees[1]['email'], $this->event->googleEvent->getAttendees()[1]->getEmail());
+    }
+
+    /** @test */
+    public function it_can_set_a_meet_link()
+    {
+        $this->event->addMeetLink();
+
+        $this->assertNotNull($this->event->googleEvent->getConferenceData());
+        $this->assertEquals('hangoutsMeet', $this->event->googleEvent->getConferenceData()->getCreateRequest()->getConferenceSolutionKey()->getType());
     }
 
     /** @test */
